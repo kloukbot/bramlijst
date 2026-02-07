@@ -14,40 +14,42 @@ async function getAuthUser() {
   return { supabase, user }
 }
 
+export async function uploadGiftImage(
+  formData: FormData
+): Promise<ActionResult & { url?: string }> {
+  const auth = await getAuthUser()
+  if (!auth) return { error: "Niet ingelogd" }
+
+  const file = formData.get("file") as File | null
+  if (!file || file.size === 0) return { error: "Geen bestand geselecteerd" }
+  if (file.size > MAX_IMAGE_SIZE_BYTES) return { error: "Afbeelding is te groot (max 5MB)" }
+  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) return { error: "Alleen JPG, PNG of WebP" }
+
+  const ext = file.name.split(".").pop() || "jpg"
+  const path = `${auth.user.id}/${Date.now()}.${ext}`
+
+  const { error: uploadError } = await auth.supabase.storage
+    .from("gift-images")
+    .upload(path, file, { upsert: true })
+
+  if (uploadError) return { error: uploadError.message }
+
+  const { data: { publicUrl } } = auth.supabase.storage
+    .from("gift-images")
+    .getPublicUrl(path)
+
+  return { success: true, url: publicUrl }
+}
+
 export async function createGift(
   data: CreateGiftInput,
-  imageFormData?: FormData
+  imageUrl?: string | null
 ): Promise<ActionResult & { id?: string }> {
   const auth = await getAuthUser()
   if (!auth) return { error: "Niet ingelogd" }
 
   const parsed = createGiftSchema.safeParse(data)
   if (!parsed.success) return { error: parsed.error.issues[0].message }
-
-  let imageUrl: string | null = null
-
-  if (imageFormData) {
-    const file = imageFormData.get("file") as File | null
-    if (file && file.size > 0) {
-      if (file.size > MAX_IMAGE_SIZE_BYTES) return { error: "Afbeelding is te groot (max 5MB)" }
-      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) return { error: "Alleen JPG, PNG of WebP" }
-
-      const ext = file.name.split(".").pop() || "jpg"
-      const path = `${auth.user.id}/${Date.now()}.${ext}`
-
-      const { error: uploadError } = await auth.supabase.storage
-        .from("gift-images")
-        .upload(path, file, { upsert: true })
-
-      if (uploadError) return { error: uploadError.message }
-
-      const { data: { publicUrl } } = auth.supabase.storage
-        .from("gift-images")
-        .getPublicUrl(path)
-
-      imageUrl = publicUrl
-    }
-  }
 
   // Get next sort_order
   const { data: lastGift } = await auth.supabase
@@ -70,7 +72,7 @@ export async function createGift(
       allow_partial: parsed.data.allowPartial,
       min_contribution: parsed.data.minContribution,
       is_visible: parsed.data.isVisible,
-      image_url: imageUrl,
+      image_url: imageUrl ?? null,
       sort_order: nextSortOrder,
     })
     .select("id")
@@ -86,7 +88,7 @@ export async function createGift(
 export async function updateGift(
   giftId: string,
   data: UpdateGiftInput,
-  imageFormData?: FormData
+  imageUrl?: string | null
 ): Promise<ActionResult> {
   const auth = await getAuthUser()
   if (!auth) return { error: "Niet ingelogd" }
@@ -103,36 +105,16 @@ export async function updateGift(
   if (parsed.data.minContribution !== undefined) updateData.min_contribution = parsed.data.minContribution
   if (parsed.data.isVisible !== undefined) updateData.is_visible = parsed.data.isVisible
 
-  // Handle image upload
-  if (imageFormData) {
-    const file = imageFormData.get("file") as File | null
-    if (file && file.size > 0) {
-      if (file.size > MAX_IMAGE_SIZE_BYTES) return { error: "Afbeelding is te groot (max 5MB)" }
-      if (!ALLOWED_IMAGE_TYPES.includes(file.type)) return { error: "Alleen JPG, PNG of WebP" }
-
-      // Clean up old image if exists (M9)
-      const { data: existingGift } = await auth.supabase
-        .from("gifts").select("image_url").eq("id", giftId).single()
-      if (existingGift?.image_url) {
-        const oldPath = existingGift.image_url.match(/gift-images\/(.+)$/)?.[1]
-        if (oldPath) await auth.supabase.storage.from("gift-images").remove([oldPath])
-      }
-
-      const ext = file.name.split(".").pop() || "jpg"
-      const path = `${auth.user.id}/${Date.now()}.${ext}`
-
-      const { error: uploadError } = await auth.supabase.storage
-        .from("gift-images")
-        .upload(path, file, { upsert: true })
-
-      if (uploadError) return { error: uploadError.message }
-
-      const { data: { publicUrl } } = auth.supabase.storage
-        .from("gift-images")
-        .getPublicUrl(path)
-
-      updateData.image_url = publicUrl
+  // Handle image URL
+  if (imageUrl) {
+    // Clean up old image if exists
+    const { data: existingGift } = await auth.supabase
+      .from("gifts").select("image_url").eq("id", giftId).single()
+    if (existingGift?.image_url) {
+      const oldPath = existingGift.image_url.match(/gift-images\/(.+)$/)?.[1]
+      if (oldPath) await auth.supabase.storage.from("gift-images").remove([oldPath])
     }
+    updateData.image_url = imageUrl
   }
 
   const { error } = await auth.supabase

@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { createGift, updateGift } from "@/actions/gifts"
+import { createGift, updateGift, uploadGiftImage } from "@/actions/gifts"
 import { euroToCents, centsToEuro, cn } from "@/lib/utils"
 import type { Gift as GiftType } from "@/types"
 
@@ -69,17 +69,24 @@ export function GiftForm({ gift, mode }: GiftFormProps) {
         isVisible,
       }
 
-      let imageFormData: FormData | undefined
+      let imageUrl: string | undefined
       if (selectedFile) {
-        imageFormData = new FormData()
-        imageFormData.set("file", selectedFile)
+        const formData = new FormData()
+        formData.set("file", selectedFile)
+        const uploadResult = await uploadGiftImage(formData)
+        if (uploadResult.error) {
+          setError(uploadResult.error)
+          setLoading(false)
+          return
+        }
+        imageUrl = uploadResult.url
       }
 
       let result
       if (mode === "create") {
-        result = await createGift(data, imageFormData)
+        result = await createGift(data, imageUrl)
       } else if (gift) {
-        result = await updateGift(gift.id, data, imageFormData)
+        result = await updateGift(gift.id, data, imageUrl)
       }
 
       if (result?.error) {
