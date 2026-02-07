@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { ImageUpload } from "@/components/dashboard/image-upload"
 import { updateProfile, uploadCoverImage, uploadAvatar, togglePublished } from "@/actions/settings"
 import type { Profile } from "@/types"
+import { themes, themeKeys, type ThemeKey } from "@/lib/themes"
 import { ExternalLink } from "lucide-react"
 
 type ProfileFormProps = {
@@ -23,6 +24,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
   const [slug, setSlug] = useState(profile.slug)
   const [weddingDate, setWeddingDate] = useState(profile.wedding_date ?? "")
   const [welcomeMessage, setWelcomeMessage] = useState(profile.welcome_message ?? "")
+  const [theme, setTheme] = useState<ThemeKey>((profile.theme as ThemeKey) ?? "romantic")
   const [isPublished, setIsPublished] = useState(profile.is_published)
   const [loading, setLoading] = useState(false)
   const [publishLoading, setPublishLoading] = useState(false)
@@ -42,6 +44,7 @@ export function ProfileForm({ profile }: ProfileFormProps) {
         slug,
         weddingDate: weddingDate || undefined,
         welcomeMessage: welcomeMessage || undefined,
+        theme,
       })
 
       if (result.error) {
@@ -204,6 +207,38 @@ export function ProfileForm({ profile }: ProfileFormProps) {
                 placeholder="Lief welkomstbericht voor jullie gasten..."
                 rows={4}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Thema voor je publieke pagina</Label>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {themeKeys.map((key) => {
+                  const t = themes[key]
+                  const selected = theme === key
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setTheme(key)}
+                      className={`flex flex-col items-center gap-2 rounded-lg border-2 p-3 transition-colors ${
+                        selected ? "border-primary bg-muted" : "border-border hover:border-muted-foreground/30"
+                      }`}
+                    >
+                      <div className="flex gap-1">
+                        <div
+                          className="h-6 w-6 rounded-full border"
+                          style={{ backgroundColor: t.swatchColors[0] }}
+                        />
+                        <div
+                          className="h-6 w-6 rounded-full border"
+                          style={{ backgroundColor: t.swatchColors[1] }}
+                        />
+                      </div>
+                      <span className="text-xs font-medium">{t.label}</span>
+                    </button>
+                  )
+                })}
+              </div>
             </div>
 
             <Button type="submit" disabled={loading}>

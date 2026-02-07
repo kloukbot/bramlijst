@@ -1,6 +1,7 @@
 "use client"
 
-import React, { useState, useMemo } from "react"
+import React, { useState, useMemo, useCallback } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { formatCents } from "@/lib/utils"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -42,6 +43,8 @@ type ContributionRow = {
 
 type TransactionTableProps = {
   contributions: ContributionRow[]
+  currentStatus?: string
+  currentSearch?: string
 }
 
 const statusConfig: Record<ContributionStatus, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
@@ -51,27 +54,28 @@ const statusConfig: Record<ContributionStatus, { label: string; variant: "defaul
   refunded: { label: "Terugbetaald", variant: "outline" },
 }
 
-export function TransactionTable({ contributions }: TransactionTableProps) {
-  const [search, setSearch] = useState("")
-  const [statusFilter, setStatusFilter] = useState<ContributionStatus | "all">("all")
+export function TransactionTable({ contributions, currentStatus = "all", currentSearch = "" }: TransactionTableProps) {
+  const router = useRouter()
+  const [search, setSearch] = useState(currentSearch)
+  const [statusFilter, setStatusFilter] = useState<ContributionStatus | "all">(currentStatus as ContributionStatus | "all")
   const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  const navigate = useCallback((newStatus: string, newSearch: string) => {
+    const params = new URLSearchParams()
+    if (newStatus !== "all") params.set("status", newStatus)
+    if (newSearch.trim()) params.set("search", newSearch.trim())
+    // Reset to page 1 on filter change
+    const qs = params.toString()
+    router.push(`/dashboard/transactions${qs ? `?${qs}` : ""}`)
+  }, [router])
   const [thankYouId, setThankYouId] = useState<string | null>(null)
   const [thankYouMessage, setThankYouMessage] = useState("")
   const [sending, setSending] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [bulkLoading, setBulkLoading] = useState(false)
 
-  const filtered = useMemo(() => {
-    let result = contributions
-    if (statusFilter !== "all") {
-      result = result.filter((c) => c.status === statusFilter)
-    }
-    if (search.trim()) {
-      const q = search.toLowerCase()
-      result = result.filter((c) => c.guest_name.toLowerCase().includes(q))
-    }
-    return result.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-  }, [contributions, statusFilter, search])
+  // Data is already filtered and sorted server-side
+  const filtered = contributions
 
   const unthankedSucceeded = filtered.filter(
     (c) => c.status === "succeeded" && !c.is_thank_you_sent
@@ -123,7 +127,14 @@ export function TransactionTable({ contributions }: TransactionTableProps) {
           <Input
             placeholder="Zoek op gastnaam..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              // Debounce-ish: navigate on Enter or clear
+              if (e.target.value === "") navigate(statusFilter, "")
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") navigate(statusFilter, search)
+            }}
             className="pl-9"
           />
         </div>
@@ -134,7 +145,7 @@ export function TransactionTable({ contributions }: TransactionTableProps) {
               key={s}
               variant={statusFilter === s ? "default" : "outline"}
               size="sm"
-              onClick={() => setStatusFilter(s)}
+              onClick={() => { setStatusFilter(s); navigate(s, search) }}
             >
               {s === "all" ? "Alle" : statusConfig[s].label}
             </Button>

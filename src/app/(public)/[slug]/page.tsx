@@ -11,6 +11,7 @@ import { GiftGridSkeleton } from "@/components/public/gift-grid-skeleton"
 import { PaymentResult } from "@/components/public/payment-result"
 import { StripeNotConnected } from "@/components/public/stripe-guard"
 import { SocialShare } from "@/components/public/social-share"
+import { getTheme } from "@/lib/themes"
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -98,12 +99,18 @@ export default async function PublicListPage({ params }: PageProps) {
   }
 
   const stripeReady = !!profile.stripe_account_id && profile.stripe_onboarding_complete
+  const theme = getTheme(profile.theme)
 
   return (
     <div className="min-h-screen bg-background">
-      <CoupleHeader profile={profile} />
+      <style>{`
+        .themed [data-slot="progress-indicator"] { background-color: ${theme.primaryHex} !important; }
+        .themed button[class*="bg-primary"], .themed a[class*="bg-primary"] { background-color: ${theme.primaryHex} !important; }
+        .themed button:not([disabled]):hover { opacity: 0.9; }
+      `}</style>
+      <CoupleHeader profile={profile} theme={theme} />
 
-      <main className="mx-auto max-w-5xl px-4 py-8 space-y-6">
+      <main className="themed mx-auto max-w-5xl px-4 py-8 space-y-6">
         <Suspense fallback={null}>
           <PaymentResult />
         </Suspense>

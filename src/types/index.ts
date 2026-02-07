@@ -19,6 +19,7 @@ export type Profile = {
   is_published: boolean
   stripe_account_id: string | null
   stripe_onboarding_complete: boolean
+  theme: string | null
   currency: string
   locale: string
   pricing_tier: string

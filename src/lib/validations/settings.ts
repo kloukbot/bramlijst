@@ -21,6 +21,7 @@ export const updateProfileSchema = z.object({
     ),
   weddingDate: z.string().optional(),
   welcomeMessage: z.string().max(2000, "Welkomstbericht is te lang").optional(),
+  theme: z.enum(["romantic", "classic", "modern", "nature"]).optional(),
 })
 
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>

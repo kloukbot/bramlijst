@@ -1,5 +1,6 @@
 import Image from "next/image"
 import type { Profile } from "@/types"
+import type { ThemeDefinition } from "@/lib/themes"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 function formatDate(dateStr: string | null): string | null {
@@ -11,7 +12,7 @@ function formatDate(dateStr: string | null): string | null {
   }).format(new Date(dateStr))
 }
 
-export function CoupleHeader({ profile }: { profile: Profile }) {
+export function CoupleHeader({ profile, theme }: { profile: Profile; theme?: ThemeDefinition }) {
   const names = [profile.partner_name_1, profile.partner_name_2]
     .filter(Boolean)
     .join(" & ")
@@ -32,7 +33,10 @@ export function CoupleHeader({ profile }: { profile: Profile }) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         </div>
       ) : (
-        <div className="h-48 sm:h-64 md:h-80 w-full bg-gradient-to-br from-rose-100 to-pink-200" />
+        <div
+          className="h-48 sm:h-64 md:h-80 w-full"
+          style={{ background: theme?.headerGradient ?? "linear-gradient(135deg, #ffe4e6, #fecdd3)" }}
+        />
       )}
 
       {/* Profile info overlay */}

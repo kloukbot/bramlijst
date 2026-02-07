@@ -147,6 +147,32 @@ export function thankYouEmail(params: {
   }
 }
 
+/** Guest contribution confirmation (alias for paymentConfirmationEmail) */
+export function guestContributionConfirmationTemplate(
+  guestName: string,
+  giftName: string,
+  amountEuro: string,
+  coupleName: string
+): { subject: string; html: string } {
+  return {
+    subject: `Bevestiging: bijdrage aan ${escapeHtml(coupleName)}`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 16px;color:#111;font-size:18px">Bedankt voor je bijdrage, ${escapeHtml(guestName)}!</h2>
+      <p style="color:#4b5563;line-height:1.6;margin:0 0 16px">
+        Je bijdrage is succesvol ontvangen. Hier is een overzicht:
+      </p>
+      <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:0 0 16px">
+        <p style="margin:0 0 8px;color:#111"><strong>Voor:</strong> ${escapeHtml(coupleName)}</p>
+        ${giftName ? `<p style="margin:0 0 8px;color:#111"><strong>Cadeau:</strong> ${escapeHtml(giftName)}</p>` : ""}
+        <p style="margin:0;color:#111"><strong>Bedrag:</strong> €${escapeHtml(amountEuro)}</p>
+      </div>
+      <p style="color:#9ca3af;font-size:13px;margin:0">
+        Dit is een automatische bevestiging. Je hoeft niet te antwoorden.
+      </p>
+    `),
+  }
+}
+
 /** Payment confirmation email to guest */
 export function paymentConfirmationEmail(params: {
   guestName: string

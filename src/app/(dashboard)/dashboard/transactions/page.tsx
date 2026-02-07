@@ -2,14 +2,46 @@ import { createClient } from "@/lib/supabase/server"
 import { redirect } from "next/navigation"
 import { TransactionStats } from "@/components/dashboard/transaction-stats"
 import { TransactionTable } from "@/components/dashboard/transaction-table"
+import { Pagination } from "@/components/dashboard/pagination"
 
-export default async function TransactionsPage() {
+const PAGE_SIZE = 20
+
+interface TransactionsPageProps {
+  searchParams: Promise<{ page?: string; status?: string; search?: string }>
+}
+
+export default async function TransactionsPage({ searchParams }: TransactionsPageProps) {
+  const sp = await searchParams
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect("/login")
 
-  // Fetch contributions with gift names
-  const { data: contributions } = await supabase
+  const currentPage = Math.max(1, parseInt(sp.page ?? "1", 10) || 1)
+  const statusFilter = sp.status ?? "all"
+  const search = sp.search ?? ""
+
+  // Build query for count
+  let countQuery = supabase
+    .from("contributions")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id)
+
+  if (statusFilter !== "all") {
+    countQuery = countQuery.eq("status", statusFilter)
+  }
+  if (search.trim()) {
+    countQuery = countQuery.ilike("guest_name", `%${search.trim()}%`)
+  }
+
+  const { count: totalCount } = await countQuery
+  const total = totalCount ?? 0
+  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const page = Math.min(currentPage, totalPages)
+  const from = (page - 1) * PAGE_SIZE
+  const to = from + PAGE_SIZE - 1
+
+  // Build data query
+  let dataQuery = supabase
     .from("contributions")
     .select(`
       id,
@@ -27,7 +59,17 @@ export default async function TransactionsPage() {
       gifts (name)
     `)
     .eq("user_id", user.id)
+
+  if (statusFilter !== "all") {
+    dataQuery = dataQuery.eq("status", statusFilter)
+  }
+  if (search.trim()) {
+    dataQuery = dataQuery.ilike("guest_name", `%${search.trim()}%`)
+  }
+
+  const { data: contributions } = await dataQuery
     .order("created_at", { ascending: false })
+    .range(from, to)
 
   const rows = (contributions ?? []).map((c) => ({
     id: c.id,
@@ -44,11 +86,17 @@ export default async function TransactionsPage() {
     gift_name: (c.gifts as unknown as { name: string } | null)?.name ?? null,
   }))
 
-  // Stats (Epic 7.5)
-  const succeeded = rows.filter((r) => r.status === "succeeded")
-  const totalCollected = succeeded.reduce((sum, r) => sum + r.amount, 0)
-  const averageContribution = succeeded.length > 0 ? Math.round(totalCollected / succeeded.length) : 0
-  const uniqueGuests = new Set(succeeded.map((r) => r.guest_name.toLowerCase())).size
+  // Stats — always over all succeeded (unfiltered)
+  const { data: allSucceeded } = await supabase
+    .from("contributions")
+    .select("amount, guest_name")
+    .eq("user_id", user.id)
+    .eq("status", "succeeded")
+
+  const succeededRows = allSucceeded ?? []
+  const totalCollected = succeededRows.reduce((sum, r) => sum + r.amount, 0)
+  const averageContribution = succeededRows.length > 0 ? Math.round(totalCollected / succeededRows.length) : 0
+  const uniqueGuests = new Set(succeededRows.map((r) => r.guest_name.toLowerCase())).size
 
   return (
     <div className="flex flex-col gap-8">
@@ -65,10 +113,22 @@ export default async function TransactionsPage() {
         totalCollected={totalCollected}
         averageContribution={averageContribution}
         uniqueGuests={uniqueGuests}
-        totalContributions={succeeded.length}
+        totalContributions={succeededRows.length}
       />
 
-      <TransactionTable contributions={rows} />
+      <TransactionTable
+        contributions={rows}
+        currentStatus={statusFilter}
+        currentSearch={search}
+      />
+
+      <Pagination
+        currentPage={page}
+        totalPages={totalPages}
+        totalCount={total}
+        statusFilter={statusFilter}
+        search={search}
+      />
     </div>
   )
 }

@@ -23,7 +23,7 @@ export async function updateProfile(data: UpdateProfileInput): Promise<ActionRes
     return { error: parsed.error.issues[0].message }
   }
 
-  const { partnerName1, partnerName2, slug, weddingDate, welcomeMessage } = parsed.data
+  const { partnerName1, partnerName2, slug, weddingDate, welcomeMessage, theme } = parsed.data
 
   // Check slug uniqueness (exclude own profile)
   const { data: existing } = await auth.supabase
@@ -46,6 +46,7 @@ export async function updateProfile(data: UpdateProfileInput): Promise<ActionRes
       slug,
       wedding_date: weddingDate || null,
       welcome_message: welcomeMessage ? sanitize(welcomeMessage) : null,
+      ...(theme ? { theme } : {}),
     })
     .eq("id", auth.user.id)
 
