@@ -1,36 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Felicio Clone 🎁
+
+Een kloon van [Felicio.nl](https://felicio.nl) - een online bruiloft cadeaulijst platform.
+
+## Features
+
+- 📝 Maak een cadeaulijst met persoonlijke URL
+- 🎁 Voeg cadeaus toe met doelbedrag
+- 💰 Gasten kunnen bijdragen aan cadeaus
+- 💳 Stripe integratie (voorbereid)
+- 🔐 Supabase Auth (voorbereid)
+
+## Tech Stack
+
+- **Framework**: Next.js 16 (App Router)
+- **Styling**: Tailwind CSS v4 + shadcn/ui
+- **Database**: Supabase (PostgreSQL) - TODO
+- **Payments**: Stripe - TODO
+- **Language**: TypeScript
 
 ## Getting Started
 
-First, run the development server:
-
 ```bash
+# Install dependencies
+npm install
+
+# Run development server
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+
+# Open http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Project Structure
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```
+src/
+├── app/
+│   ├── page.tsx          # Landing page
+│   ├── login/            # Login page
+│   ├── start/            # Create list wizard
+│   ├── dashboard/        # Dashboard + list management
+│   └── lijst/[slug]/     # Public list view
+├── components/
+│   ├── ui/               # shadcn/ui components
+│   ├── dashboard-sidebar.tsx
+│   ├── gift-dialog.tsx
+│   └── contribution-dialog.tsx
+├── lib/
+│   ├── utils.ts
+│   └── mock-data.ts      # Demo data
+└── types/
+    └── index.ts          # TypeScript types
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Pages
 
-## Learn More
+| Route | Description |
+|-------|-------------|
+| `/` | Landing page |
+| `/login` | Login (mock) |
+| `/start` | Create new list wizard |
+| `/dashboard` | User dashboard |
+| `/dashboard/lijsten` | My lists |
+| `/lijst/[slug]` | Public list view |
 
-To learn more about Next.js, take a look at the following resources:
+## TODO
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- [ ] Supabase integration (database + auth)
+- [ ] Stripe Checkout integration
+- [ ] Image upload (cover + gift images)
+- [ ] List publishing flow
+- [ ] Share functionality
+- [ ] Payment settings (IBAN)
+- [ ] Admin fee calculation (€49.95 + €0.95/transaction)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Development Notes
 
-## Deploy on Vercel
+Currently using mock data for demo purposes. Real data will come from Supabase once configured.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Built with ❤️ by Marvin 🤖
