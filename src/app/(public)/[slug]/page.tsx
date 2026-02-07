@@ -10,6 +10,7 @@ import { GiftGrid } from "@/components/public/gift-grid"
 import { GiftGridSkeleton } from "@/components/public/gift-grid-skeleton"
 import { PaymentResult } from "@/components/public/payment-result"
 import { StripeNotConnected } from "@/components/public/stripe-guard"
+import { SocialShare } from "@/components/public/social-share"
 
 interface PageProps {
   params: Promise<{ slug: string }>
@@ -116,6 +117,14 @@ export default async function PublicListPage({ params }: PageProps) {
             stripeReady={stripeReady}
           />
         </Suspense>
+        <SocialShare
+          slug={slug}
+          coupleNames={
+            [profile.partner_name_1, profile.partner_name_2]
+              .filter(Boolean)
+              .join(" & ") || "het bruidspaar"
+          }
+        />
       </main>
     </div>
   )

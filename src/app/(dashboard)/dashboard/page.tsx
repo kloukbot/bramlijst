@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { ExternalLink, Gift, Settings } from "lucide-react"
+import { ShareButton } from "@/components/share-button"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -68,11 +69,14 @@ export default async function DashboardPage() {
           </CardHeader>
           <CardContent className="flex gap-2">
             {profile.is_published && (
-              <Button variant="outline" size="sm" asChild>
-                <a href={`/${profile.slug}`} target="_blank" rel="noopener noreferrer">
-                  Bekijk lijst <ExternalLink className="ml-1 h-3 w-3" />
-                </a>
-              </Button>
+              <>
+                <Button variant="outline" size="sm" asChild>
+                  <a href={`/${profile.slug}`} target="_blank" rel="noopener noreferrer">
+                    Bekijk lijst <ExternalLink className="ml-1 h-3 w-3" />
+                  </a>
+                </Button>
+                <ShareButton url={`/${profile.slug}`} />
+              </>
             )}
             <Button variant="outline" size="sm" asChild>
               <Link href="/dashboard/settings">

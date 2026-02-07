@@ -5,6 +5,8 @@ import { redirect } from "next/navigation"
 import { revalidatePath } from "next/cache"
 import type { LoginInput, RegisterInput } from "@/lib/validations/auth"
 import type { ActionResult } from "@/types"
+import { sendEmail } from "@/lib/email"
+import { welcomeEmailTemplate } from "@/lib/email-templates"
 
 export async function login(
   data: LoginInput
@@ -52,6 +54,19 @@ export async function register(
       return { error: "Dit e-mailadres is al geregistreerd" }
     }
     return { error: error.message }
+  }
+
+  // Send welcome email (non-blocking, don't fail registration if email fails)
+  try {
+    const slug = `${(data.partnerName1 || "").toLowerCase()}-en-${(data.partnerName2 || "").toLowerCase()}`.replace(/\s+/g, "-")
+    const { subject, html } = welcomeEmailTemplate(
+      data.partnerName1,
+      data.partnerName2,
+      slug
+    )
+    sendEmail({ to: data.email, subject, html }).catch(() => {})
+  } catch {
+    // Silently ignore email errors
   }
 
   return { success: true }

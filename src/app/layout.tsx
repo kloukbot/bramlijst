@@ -3,6 +3,7 @@ import type { Metadata, Viewport } from "next"
 import { DM_Sans, Playfair_Display } from "next/font/google"
 
 import "./globals.css"
+import { CookieConsent } from "@/components/cookie-consent"
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -50,7 +51,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="nl" className={`${dmSans.variable} ${playfair.variable}`}>
-      <body className="font-sans antialiased">{children}</body>
+      <body className="font-sans antialiased">
+        {children}
+        <CookieConsent />
+      </body>
     </html>
   )
 }

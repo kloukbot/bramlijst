@@ -54,6 +54,48 @@ export function welcomeEmail(displayName: string): { subject: string; html: stri
   }
 }
 
+/** Detailed welcome email with 3 steps, sent after registration */
+export function welcomeEmailTemplate(
+  partnerName1: string,
+  partnerName2: string,
+  slug: string
+): { subject: string; html: string } {
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://bramlijst.vercel.app"
+  const names = [partnerName1, partnerName2].filter(Boolean).join(" & ") || "daar"
+
+  return {
+    subject: `Welkom bij Bramlijst, ${names}! 🎉💍`,
+    html: baseTemplate(`
+      <h2 style="margin:0 0 16px;color:#111;font-size:18px">Welkom, ${escapeHtml(names)}!</h2>
+      <p style="color:#4b5563;line-height:1.6;margin:0 0 16px">
+        Wat leuk dat jullie Bramlijst gebruiken voor jullie bruiloft! Jullie cadeaulijst staat klaar.
+      </p>
+      <p style="color:#4b5563;line-height:1.6;margin:0 0 8px;font-weight:600">
+        Zo beginnen jullie in 3 stappen:
+      </p>
+      <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:0 0 16px">
+        <p style="margin:0 0 12px;color:#111">
+          <strong>1. Vul jullie profiel aan</strong><br>
+          <span style="color:#4b5563">Voeg jullie namen, trouwdatum en een welkomstbericht toe via de instellingen.</span>
+        </p>
+        <p style="margin:0 0 12px;color:#111">
+          <strong>2. Voeg cadeaus toe</strong><br>
+          <span style="color:#4b5563">Maak jullie wenslijst compleet met cadeaus waar gasten aan kunnen bijdragen.</span>
+        </p>
+        <p style="margin:0;color:#111">
+          <strong>3. Koppel Stripe</strong><br>
+          <span style="color:#4b5563">Verbind jullie Stripe-account zodat gasten veilig via iDEAL kunnen betalen.</span>
+        </p>
+      </div>
+      ${slug ? `<p style="color:#4b5563;line-height:1.6;margin:0 0 16px">Jullie unieke link wordt: <strong>${appUrl}/${escapeHtml(slug)}</strong></p>` : ""}
+      <a href="${appUrl}/dashboard" 
+         style="display:inline-block;background:#ec4899;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:500">
+        Ga naar je dashboard →
+      </a>
+    `),
+  }
+}
+
 /** Email to couple when a new contribution is received */
 export function contributionReceivedEmail(params: {
   coupleName: string
