@@ -57,7 +57,7 @@ export function Header() {
         {/* Desktop CTA */}
         <div className="hidden items-center gap-3 lg:flex">
           <Button variant="ghost" size="sm" asChild>
-            <Link href="#login">Inloggen</Link>
+            <Link href="/login">Inloggen</Link>
           </Button>
           <Button size="sm" asChild>
             <Link href="/register">Lijst aanmaken</Link>
@@ -92,7 +92,7 @@ export function Header() {
           </nav>
           <div className="mt-6 flex flex-col gap-3">
             <Button variant="outline" size="sm" asChild>
-              <Link href="#login">Inloggen</Link>
+              <Link href="/login">Inloggen</Link>
             </Button>
             <Button size="sm" asChild>
               <Link href="/register">Lijst aanmaken</Link>
