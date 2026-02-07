@@ -1,73 +1,65 @@
-// Database types for Felicio clone
+/** App-level types (supplements generated Supabase types) */
 
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  avatar_url?: string;
-  iban?: string;
-  created_at: string;
+export type ActionResult = {
+  error?: string
+  success?: boolean
 }
 
-export interface GiftList {
-  id: string;
-  user_id: string;
-  slug: string;
-  couple_names: string;
-  wedding_date: string;
-  description?: string;
-  cover_image?: string;
-  is_published: boolean;
-  created_at: string;
-  updated_at: string;
+export type Profile = {
+  id: string
+  email: string
+  display_name: string | null
+  partner_name_1: string | null
+  partner_name_2: string | null
+  slug: string
+  wedding_date: string | null
+  welcome_message: string | null
+  cover_image_url: string | null
+  avatar_url: string | null
+  is_published: boolean
+  stripe_account_id: string | null
+  stripe_onboarding_complete: boolean
+  currency: string
+  locale: string
+  pricing_tier: string
+  created_at: string
+  updated_at: string
 }
 
-export interface Gift {
-  id: string;
-  list_id: string;
-  title: string;
-  description?: string;
-  image?: string;
-  target_amount: number;
-  received_amount: number;
-  created_at: string;
-  updated_at: string;
+export type Gift = {
+  id: string
+  user_id: string
+  name: string
+  description: string | null
+  target_amount: number // in cents
+  collected_amount: number // in cents
+  image_url: string | null
+  is_fully_funded: boolean
+  allow_partial: boolean
+  min_contribution: number // in cents
+  sort_order: number
+  is_visible: boolean
+  created_at: string
+  updated_at: string
 }
 
-export interface Contribution {
-  id: string;
-  gift_id: string;
-  amount: number;
-  message?: string;
-  donor_name?: string;
-  donor_email?: string;
-  stripe_payment_id?: string;
-  status: 'pending' | 'completed' | 'failed';
-  created_at: string;
-}
+export type ContributionStatus = "pending" | "succeeded" | "failed" | "refunded"
 
-// Form types
-export interface CreateListForm {
-  couple_names: string;
-  wedding_date: string;
-}
-
-export interface ListSettingsForm {
-  description?: string;
-  cover_image?: string;
-  slug: string;
-}
-
-export interface CreateGiftForm {
-  title: string;
-  description?: string;
-  image?: string;
-  target_amount: number;
-}
-
-export interface ContributionForm {
-  amount: number;
-  message?: string;
-  donor_name?: string;
-  donor_email?: string;
+export type Contribution = {
+  id: string
+  gift_id: string | null
+  user_id: string
+  guest_name: string
+  guest_email: string | null
+  amount: number // in cents
+  message: string | null
+  stripe_payment_intent_id: string | null
+  stripe_checkout_session_id: string | null
+  status: ContributionStatus
+  is_thank_you_sent: boolean
+  thank_you_message: string | null
+  thank_you_sent_at: string | null
+  metadata: Record<string, unknown>
+  created_at: string
+  updated_at: string
 }
