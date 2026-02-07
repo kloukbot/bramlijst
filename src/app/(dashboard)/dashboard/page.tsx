@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import Link from "next/link"
 import { ExternalLink, Gift, Settings } from "lucide-react"
 import { ShareButton } from "@/components/share-button"
+import { OnboardingChecklist } from "@/components/dashboard/onboarding-checklist"
 
 export default async function DashboardPage() {
   const supabase = await createClient()
@@ -52,6 +53,14 @@ export default async function DashboardPage() {
           Hier is het overzicht van jullie cadeaulijst.
         </p>
       </div>
+
+      <OnboardingChecklist
+        hasProfile={!!(profile.partner_name_1 && profile.partner_name_2)}
+        hasStripe={!!profile.stripe_account_id}
+        hasGifts={totalGifts > 0}
+        hasWelcomeMessage={!!profile.welcome_message}
+        isPublished={profile.is_published}
+      />
 
       <StatsCards
         totalCollected={totalCollected}

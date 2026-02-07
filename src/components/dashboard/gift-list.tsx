@@ -12,7 +12,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
-import { GiftCard } from "@/components/dashboard/gift-card"
+import { SortableGiftList } from "@/components/dashboard/gift-list-sortable"
 import { deleteGift, toggleGiftVisibility, reorderGifts } from "@/actions/gifts"
 import type { Gift } from "@/types"
 
@@ -70,6 +70,13 @@ export function GiftList({ gifts: initialGifts }: GiftListProps) {
     })
   }
 
+  function handleReorder(newGifts: Gift[]) {
+    setGifts(newGifts)
+    startTransition(async () => {
+      await reorderGifts(newGifts.map((g) => g.id))
+    })
+  }
+
   const deletingGift = gifts.find((g) => g.id === deleteId)
 
   return (
@@ -104,20 +111,14 @@ export function GiftList({ gifts: initialGifts }: GiftListProps) {
           </Button>
         </div>
       ) : (
-        <div className="space-y-3">
-          {gifts.map((gift, i) => (
-            <GiftCard
-              key={gift.id}
-              gift={gift}
-              onToggleVisibility={handleToggleVisibility}
-              onDelete={handleDelete}
-              onMoveUp={handleMoveUp}
-              onMoveDown={handleMoveDown}
-              isFirst={i === 0}
-              isLast={i === gifts.length - 1}
-            />
-          ))}
-        </div>
+        <SortableGiftList
+          gifts={gifts}
+          onReorder={handleReorder}
+          onToggleVisibility={handleToggleVisibility}
+          onDelete={handleDelete}
+          onMoveUp={handleMoveUp}
+          onMoveDown={handleMoveDown}
+        />
       )}
 
       {/* Delete confirmation dialog */}

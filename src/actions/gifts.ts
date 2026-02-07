@@ -199,18 +199,25 @@ export async function reorderGifts(orderedIds: string[]): Promise<ActionResult> 
   const auth = await getAuthUser()
   if (!auth) return { error: "Niet ingelogd" }
 
-  // Update sort_order for each gift
-  const updates = orderedIds.map((id, index) =>
-    auth.supabase
-      .from("gifts")
-      .update({ sort_order: index })
-      .eq("id", id)
-      .eq("user_id", auth.user.id)
-  )
+  // Try batch RPC first (requires migration 007_batch_reorder.sql to be run)
+  const items = orderedIds.map((id, index) => ({ id, sort_order: index }))
+  const { error: rpcError } = await auth.supabase.rpc("batch_reorder_gifts", {
+    items: JSON.stringify(items),
+  })
 
-  const results = await Promise.all(updates)
-  const failed = results.find((r) => r.error)
-  if (failed?.error) return { error: failed.error.message }
+  if (rpcError) {
+    // Fallback: individual updates if RPC not available yet
+    const updates = orderedIds.map((id, index) =>
+      auth.supabase
+        .from("gifts")
+        .update({ sort_order: index })
+        .eq("id", id)
+        .eq("user_id", auth.user.id)
+    )
+    const results = await Promise.all(updates)
+    const failed = results.find((r) => r.error)
+    if (failed?.error) return { error: failed.error.message }
+  }
 
   revalidatePath("/dashboard/gifts")
   return { success: true }
