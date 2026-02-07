@@ -30,7 +30,12 @@ export default async function DashboardPage() {
   const totalCollected = gifts?.reduce((sum, g) => sum + (g.collected_amount ?? 0), 0) ?? 0
 
   // contributions count (will be 0 until Epic 6)
-  const totalContributions = 0
+  const { count } = await supabase
+    .from("contributions")
+    .select("*", { count: "exact", head: true })
+    .eq("user_id", user.id)
+    .eq("status", "succeeded")
+  const totalContributions = count ?? 0
 
   const displayName = profile.partner_name_1 && profile.partner_name_2
     ? `${profile.partner_name_1} & ${profile.partner_name_2}`

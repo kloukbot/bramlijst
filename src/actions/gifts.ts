@@ -64,8 +64,8 @@ export async function createGift(
     .from("gifts")
     .insert({
       user_id: auth.user.id,
-      name: sanitize(parsed.data.name),
-      description: parsed.data.description ? sanitize(parsed.data.description) : null,
+      name: parsed.data.name.trim(),
+      description: parsed.data.description ? parsed.data.description.trim() : null,
       target_amount: parsed.data.targetAmount,
       allow_partial: parsed.data.allowPartial,
       min_contribution: parsed.data.minContribution,
@@ -96,8 +96,8 @@ export async function updateGift(
 
   // Build update object from only provided fields
   const updateData: Record<string, unknown> = {}
-  if (parsed.data.name !== undefined) updateData.name = sanitize(parsed.data.name)
-  if (parsed.data.description !== undefined) updateData.description = parsed.data.description ? sanitize(parsed.data.description) : null
+  if (parsed.data.name !== undefined) updateData.name = parsed.data.name.trim()
+  if (parsed.data.description !== undefined) updateData.description = parsed.data.description ? parsed.data.description.trim() : null
   if (parsed.data.targetAmount !== undefined) updateData.target_amount = parsed.data.targetAmount
   if (parsed.data.allowPartial !== undefined) updateData.allow_partial = parsed.data.allowPartial
   if (parsed.data.minContribution !== undefined) updateData.min_contribution = parsed.data.minContribution
@@ -109,6 +109,14 @@ export async function updateGift(
     if (file && file.size > 0) {
       if (file.size > MAX_IMAGE_SIZE_BYTES) return { error: "Afbeelding is te groot (max 5MB)" }
       if (!ALLOWED_IMAGE_TYPES.includes(file.type)) return { error: "Alleen JPG, PNG of WebP" }
+
+      // Clean up old image if exists (M9)
+      const { data: existingGift } = await auth.supabase
+        .from("gifts").select("image_url").eq("id", giftId).single()
+      if (existingGift?.image_url) {
+        const oldPath = existingGift.image_url.match(/gift-images\/(.+)$/)?.[1]
+        if (oldPath) await auth.supabase.storage.from("gift-images").remove([oldPath])
+      }
 
       const ext = file.name.split(".").pop() || "jpg"
       const path = `${auth.user.id}/${Date.now()}.${ext}`

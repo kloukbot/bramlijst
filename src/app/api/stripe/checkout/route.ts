@@ -52,9 +52,9 @@ export async function POST(request: NextRequest) {
     const result = await createCheckoutSession({
       gift_id: body.gift_id,
       amount: body.amount,
-      guest_name: sanitize(body.guest_name),
-      guest_email: body.guest_email || undefined,
-      message: body.message ? sanitize(body.message) : undefined,
+      guest_name: body.guest_name.trim(),
+      guest_email: body.guest_email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(body.guest_email) ? body.guest_email : undefined,
+      message: body.message ? body.message.trim() : undefined,
       slug: body.slug,
     })
 

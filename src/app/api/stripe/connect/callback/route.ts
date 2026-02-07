@@ -47,6 +47,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.redirect(`${APP_URL}/login`)
   }
 
+  // Verify state is bound to this user (H3: CSRF protection)
+  const [stateUserId] = savedState.split(":")
+  if (stateUserId !== user.id) {
+    return NextResponse.redirect(`${redirectBase}?error=${encodeURIComponent("State mismatch - probeer opnieuw")}`)
+  }
+
   try {
     // Exchange code for account
     const { stripeAccountId } = await exchangeCodeForAccount(code)

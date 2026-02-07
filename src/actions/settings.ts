@@ -60,7 +60,7 @@ async function uploadImage(
   formData: FormData,
   bucket: string,
   folder: string
-): Promise<ActionResult & { url?: string }> {
+): Promise<ActionResult & { url?: string; auth?: { user: { id: string }; supabase: any } }> {
   const auth = await getAuthUser()
   if (!auth) return { error: "Niet ingelogd" }
 
@@ -87,20 +87,17 @@ async function uploadImage(
     .from(bucket)
     .getPublicUrl(path)
 
-  return { success: true, url: publicUrl }
+  return { success: true, url: publicUrl, auth }
 }
 
 export async function uploadCoverImage(formData: FormData): Promise<ActionResult> {
   const result = await uploadImage(formData, "profile-images", "cover")
-  if (result.error) return { error: result.error }
+  if (result.error || !result.auth) return { error: result.error ?? "Niet ingelogd" }
 
-  const auth = await getAuthUser()
-  if (!auth) return { error: "Niet ingelogd" }
-
-  const { error } = await auth.supabase
+  const { error } = await result.auth.supabase
     .from("profiles")
     .update({ cover_image_url: result.url })
-    .eq("id", auth.user.id)
+    .eq("id", result.auth.user.id)
 
   if (error) return { error: error.message }
 
@@ -110,15 +107,12 @@ export async function uploadCoverImage(formData: FormData): Promise<ActionResult
 
 export async function uploadAvatar(formData: FormData): Promise<ActionResult> {
   const result = await uploadImage(formData, "profile-images", "avatar")
-  if (result.error) return { error: result.error }
+  if (result.error || !result.auth) return { error: result.error ?? "Niet ingelogd" }
 
-  const auth = await getAuthUser()
-  if (!auth) return { error: "Niet ingelogd" }
-
-  const { error } = await auth.supabase
+    const { error } = await result.auth.supabase
     .from("profiles")
     .update({ avatar_url: result.url })
-    .eq("id", auth.user.id)
+    .eq("id", result.auth.user.id)
 
   if (error) return { error: error.message }
 

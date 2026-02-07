@@ -4,6 +4,16 @@
 
 import { formatCents } from "@/lib/utils"
 
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
+
+
 function baseTemplate(content: string): string {
   return `<!DOCTYPE html>
 <html lang="nl">
@@ -53,17 +63,17 @@ export function contributionReceivedEmail(params: {
   message: string | null
 }): { subject: string; html: string } {
   return {
-    subject: `🎁 Nieuwe bijdrage van ${params.guestName}!`,
+    subject: `🎁 Nieuwe bijdrage van ${escapeHtml(params.guestName ?? "")}!`,
     html: baseTemplate(`
       <h2 style="margin:0 0 16px;color:#111;font-size:18px">Nieuwe bijdrage ontvangen!</h2>
       <p style="color:#4b5563;line-height:1.6;margin:0 0 16px">
-        Goed nieuws, ${params.coupleName}! Er is een bijdrage binnengekomen.
+        Goed nieuws, ${escapeHtml(params.coupleName ?? "")}! Er is een bijdrage binnengekomen.
       </p>
       <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:0 0 16px">
-        <p style="margin:0 0 8px;color:#111"><strong>Gast:</strong> ${params.guestName}</p>
-        ${params.giftName ? `<p style="margin:0 0 8px;color:#111"><strong>Cadeau:</strong> ${params.giftName}</p>` : ""}
+        <p style="margin:0 0 8px;color:#111"><strong>Gast:</strong> ${escapeHtml(params.guestName ?? "")}</p>
+        ${params.giftName ? `<p style="margin:0 0 8px;color:#111"><strong>Cadeau:</strong> ${escapeHtml(params.giftName ?? "")}</p>` : ""}
         <p style="margin:0 0 8px;color:#111"><strong>Bedrag:</strong> ${formatCents(params.amount)}</p>
-        ${params.message ? `<p style="margin:0;color:#111"><strong>Bericht:</strong> "${params.message}"</p>` : ""}
+        ${params.message ? `<p style="margin:0;color:#111"><strong>Bericht:</strong> "${escapeHtml(params.message ?? "")}"</p>` : ""}
       </div>
       <a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard/transactions" 
          style="display:inline-block;background:#ec4899;color:#fff;text-decoration:none;padding:12px 24px;border-radius:8px;font-weight:500">
@@ -81,16 +91,16 @@ export function thankYouEmail(params: {
   giftName: string | null
 }): { subject: string; html: string } {
   return {
-    subject: `Bedankt van ${params.coupleName}! 💕`,
+    subject: `Bedankt van ${escapeHtml(params.coupleName ?? "")}! 💕`,
     html: baseTemplate(`
-      <h2 style="margin:0 0 16px;color:#111;font-size:18px">Lieve ${params.guestName},</h2>
+      <h2 style="margin:0 0 16px;color:#111;font-size:18px">Lieve ${escapeHtml(params.guestName ?? "")},</h2>
       <p style="color:#4b5563;line-height:1.6;margin:0 0 16px">
-        ${params.coupleName} heeft je een persoonlijk bericht gestuurd:
+        ${escapeHtml(params.coupleName ?? "")} heeft je een persoonlijk bericht gestuurd:
       </p>
       <div style="background:#fdf2f8;border-left:4px solid #ec4899;padding:16px;border-radius:0 8px 8px 0;margin:0 0 16px">
-        <p style="margin:0;color:#111;font-style:italic;line-height:1.6">"${params.message}"</p>
+        <p style="margin:0;color:#111;font-style:italic;line-height:1.6">"${escapeHtml(params.message ?? "")}"</p>
       </div>
-      ${params.giftName ? `<p style="color:#9ca3af;font-size:13px;margin:0">Voor: ${params.giftName}</p>` : ""}
+      ${params.giftName ? `<p style="color:#9ca3af;font-size:13px;margin:0">Voor: ${escapeHtml(params.giftName ?? "")}</p>` : ""}
     `),
   }
 }
@@ -103,15 +113,15 @@ export function paymentConfirmationEmail(params: {
   amount: number // cents
 }): { subject: string; html: string } {
   return {
-    subject: `Bevestiging: bijdrage aan ${params.coupleName}`,
+    subject: `Bevestiging: bijdrage aan ${escapeHtml(params.coupleName ?? "")}`,
     html: baseTemplate(`
-      <h2 style="margin:0 0 16px;color:#111;font-size:18px">Bedankt, ${params.guestName}!</h2>
+      <h2 style="margin:0 0 16px;color:#111;font-size:18px">Bedankt, ${escapeHtml(params.guestName ?? "")}!</h2>
       <p style="color:#4b5563;line-height:1.6;margin:0 0 16px">
         Je bijdrage is succesvol ontvangen. Hier is een overzicht:
       </p>
       <div style="background:#f9fafb;border-radius:8px;padding:16px;margin:0 0 16px">
-        <p style="margin:0 0 8px;color:#111"><strong>Voor:</strong> ${params.coupleName}</p>
-        ${params.giftName ? `<p style="margin:0 0 8px;color:#111"><strong>Cadeau:</strong> ${params.giftName}</p>` : ""}
+        <p style="margin:0 0 8px;color:#111"><strong>Voor:</strong> ${escapeHtml(params.coupleName ?? "")}</p>
+        ${params.giftName ? `<p style="margin:0 0 8px;color:#111"><strong>Cadeau:</strong> ${escapeHtml(params.giftName ?? "")}</p>` : ""}
         <p style="margin:0;color:#111"><strong>Bedrag:</strong> ${formatCents(params.amount)}</p>
       </div>
       <p style="color:#9ca3af;font-size:13px;margin:0">

@@ -28,8 +28,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Niet ingelogd" }, { status: 401 })
   }
 
-  // Generate CSRF state token
-  const state = randomBytes(32).toString("hex")
+  // Generate CSRF state token bound to user
+  const state = `${user.id}:${randomBytes(32).toString("hex")}`
 
   // Store state in cookie for verification on callback
   const cookieStore = await cookies()

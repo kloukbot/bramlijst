@@ -2,7 +2,6 @@ import { ImageResponse } from "next/og"
 import { createClient } from "@/lib/supabase/server"
 import type { Profile } from "@/types"
 
-export const runtime = "edge"
 
 export async function GET(
   _request: Request,
