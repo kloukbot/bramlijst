@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server"
 import { getConnectOAuthUrl } from "@/lib/stripe/connect"
 import { randomBytes } from "crypto"
 import { cookies } from "next/headers"
-import { rateLimit, getClientIp } from "@/lib/rate-limit"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 
 /**
  * POST /api/stripe/connect
@@ -12,11 +12,11 @@ import { rateLimit, getClientIp } from "@/lib/rate-limit"
 export async function POST(request: NextRequest) {
   // Rate limiting: 5 req/min per IP
   const ip = getClientIp(request)
-  const rl = rateLimit(`connect:${ip}`, { maxRequests: 5, windowMs: 60_000 })
-  if (!rl.allowed) {
+  const rl = await checkRateLimit(`connect:${ip}`, "api")
+  if (!rl.success) {
     return NextResponse.json(
       { error: "Te veel verzoeken. Probeer het over een minuut opnieuw." },
-      { status: 429, headers: { "Retry-After": String(Math.ceil(rl.resetMs / 1000)) } }
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rl.reset ?? 10000) / 1000)) } }
     )
   }
   const supabase = await createClient()

@@ -1,57 +1,52 @@
-/**
- * Simple in-memory rate limiter (MVP, no Redis needed).
- * Tracks requests per key (IP) using a sliding window.
- */
+import { Ratelimit } from "@upstash/ratelimit"
+import { Redis } from "@upstash/redis"
 
-type RateLimitEntry = {
-  timestamps: number[]
-}
+// Falls back to in-memory if env vars not set (local dev without Redis)
+const redis = process.env.KV_REST_API_URL && process.env.KV_REST_API_TOKEN
+  ? new Redis({
+      url: process.env.KV_REST_API_URL,
+      token: process.env.KV_REST_API_TOKEN,
+    })
+  : null
 
-const store = new Map<string, RateLimitEntry>()
+// Rate limiter for API endpoints (10 requests per 10 seconds per IP)
+export const apiRateLimit = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(10, "10 s"),
+      analytics: true,
+      prefix: "ratelimit:api",
+    })
+  : null
 
-// Cleanup old entries every 5 minutes
-setInterval(() => {
-  const now = Date.now()
-  for (const [key, entry] of store.entries()) {
-    entry.timestamps = entry.timestamps.filter((t) => now - t < 120_000)
-    if (entry.timestamps.length === 0) store.delete(key)
-  }
-}, 300_000)
+// Rate limiter for webhooks (100 requests per minute)
+export const webhookRateLimit = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(100, "1 m"),
+      analytics: true,
+      prefix: "ratelimit:webhook",
+    })
+  : null
 
-type RateLimitConfig = {
-  maxRequests: number
-  windowMs: number
-}
+// Helper function that matches the old interface
+export async function checkRateLimit(
+  identifier: string,
+  type: "api" | "webhook" = "api"
+): Promise<{ success: boolean; limit?: number; remaining?: number; reset?: number }> {
+  const limiter = type === "webhook" ? webhookRateLimit : apiRateLimit
 
-type RateLimitResult = {
-  allowed: boolean
-  remaining: number
-  resetMs: number
-}
-
-export function rateLimit(key: string, config: RateLimitConfig): RateLimitResult {
-  const now = Date.now()
-  const entry = store.get(key) ?? { timestamps: [] }
-
-  // Remove timestamps outside the window
-  entry.timestamps = entry.timestamps.filter((t) => now - t < config.windowMs)
-
-  if (entry.timestamps.length >= config.maxRequests) {
-    const oldest = entry.timestamps[0]
-    return {
-      allowed: false,
-      remaining: 0,
-      resetMs: oldest + config.windowMs - now,
-    }
+  if (!limiter) {
+    // No Redis configured, allow all (development)
+    return { success: true }
   }
 
-  entry.timestamps.push(now)
-  store.set(key, entry)
-
+  const result = await limiter.limit(identifier)
   return {
-    allowed: true,
-    remaining: config.maxRequests - entry.timestamps.length,
-    resetMs: config.windowMs,
+    success: result.success,
+    limit: result.limit,
+    remaining: result.remaining,
+    reset: result.reset,
   }
 }
 

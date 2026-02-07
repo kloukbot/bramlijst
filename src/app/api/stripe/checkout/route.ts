@@ -4,17 +4,17 @@ import {
   CheckoutError,
   type CreateCheckoutParams,
 } from "@/lib/stripe/checkout"
-import { rateLimit, getClientIp } from "@/lib/rate-limit"
+import { checkRateLimit, getClientIp } from "@/lib/rate-limit"
 import { sanitize } from "@/lib/utils"
 
 export async function POST(request: NextRequest) {
-  // Rate limiting: 10 req/min per IP
+  // Rate limiting: 10 req/10s per IP (Upstash Redis)
   const ip = getClientIp(request)
-  const rl = rateLimit(`checkout:${ip}`, { maxRequests: 10, windowMs: 60_000 })
-  if (!rl.allowed) {
+  const rl = await checkRateLimit(`checkout:${ip}`, "api")
+  if (!rl.success) {
     return NextResponse.json(
       { error: "Te veel verzoeken. Probeer het over een minuut opnieuw." },
-      { status: 429, headers: { "Retry-After": String(Math.ceil(rl.resetMs / 1000)) } }
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rl.reset ?? 10000) / 1000)) } }
     )
   }
 
