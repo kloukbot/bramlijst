@@ -60,7 +60,7 @@ export function Header() {
             <Link href="#login">Inloggen</Link>
           </Button>
           <Button size="sm" asChild>
-            <Link href="#start">Lijst aanmaken</Link>
+            <Link href="/register">Lijst aanmaken</Link>
           </Button>
         </div>
 
@@ -95,7 +95,7 @@ export function Header() {
               <Link href="#login">Inloggen</Link>
             </Button>
             <Button size="sm" asChild>
-              <Link href="#start">Lijst aanmaken</Link>
+              <Link href="/register">Lijst aanmaken</Link>
             </Button>
           </div>
         </div>

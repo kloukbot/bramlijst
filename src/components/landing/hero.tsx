@@ -30,13 +30,13 @@ export function Hero() {
 
             <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
               <Button size="lg" asChild>
-                <Link href="#start" className="gap-2">
+                <Link href="/register" className="gap-2">
                   Gratis lijst aanmaken
                   <ArrowRight className="h-4 w-4" />
                 </Link>
               </Button>
               <Button variant="outline" size="lg" asChild>
-                <Link href="#voorbeeld">Bekijk voorbeeld</Link>
+                <Link href="/marvintest1-15e49d">Bekijk voorbeeld</Link>
               </Button>
             </div>
 

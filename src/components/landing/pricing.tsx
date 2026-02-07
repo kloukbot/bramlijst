@@ -58,7 +58,7 @@ export function Pricing() {
             </ul>
 
             <Button className="mt-8 w-full" size="lg" asChild>
-              <Link href="#start">Lijst aanmaken</Link>
+              <Link href="/register">Lijst aanmaken</Link>
             </Button>
 
             <p className="mt-4 text-center text-xs text-muted-foreground">

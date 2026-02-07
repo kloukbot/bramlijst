@@ -25,7 +25,7 @@ export function CTA() {
                 variant="secondary"
                 asChild
               >
-                <Link href="#start" className="gap-2">
+                <Link href="/register" className="gap-2">
                   Gratis lijst aanmaken
                   <ArrowRight className="h-4 w-4" />
                 </Link>
@@ -36,7 +36,7 @@ export function CTA() {
                 className="border-primary-foreground/20 bg-transparent text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground"
                 asChild
               >
-                <Link href="#voorbeeld">Bekijk voorbeeld</Link>
+                <Link href="/marvintest1-15e49d">Bekijk voorbeeld</Link>
               </Button>
             </div>
           </div>

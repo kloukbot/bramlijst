@@ -63,7 +63,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="#voorbeeld"
+                  href="/marvintest1-15e49d"
                   className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
                   Voorbeeldlijst

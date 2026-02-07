@@ -128,7 +128,7 @@ export function Preview() {
 
         <div className="mt-12 text-center">
           <Button size="lg" variant="outline" asChild>
-            <Link href="#start" className="gap-2">
+            <Link href="/register" className="gap-2">
               Bekijk een voorbeeldlijst
               <ArrowRight className="h-4 w-4" />
             </Link>
